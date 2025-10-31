@@ -1,26 +1,114 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "postgresql" // or any other database provider
-  url      = env("DATABASE_URL")
-}
-
-model Task {
-  id        Int      @id @default(autoincrement())
-  title     String
-  description String?
-  status    String   @default("Pending")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id])
-}
-
 model User {
   id        Int      @id @default(autoincrement())
   name      String
   email     String   @unique
+  role      Role     @relation(fields: [roleId], references: [id])
+  roleId    Int
   tasks     Task[]
+}
+
+model Role {
+  id    Int    @id @default(autoincrement())
+  name  String
+  users User[]
+}
+
+model TaskType {
+  id    Int    @id @default(autoincrement())
+  name  String
+  tasks Task[]
+}
+
+model Project {
+  id        Int      @id @default(autoincrement())
+  name      String
+  tasks     Task[]
+}
+
+model Task {
+  id          Int          @id @default(autoincrement())
+  title       String
+  description String
+  type        TaskType     @relation(fields: [typeId], references: [id])
+  typeId      Int
+  project     Project       @relation(fields: [projectId], references: [id])
+  projectId   Int
+  equipment   TaskEquipment[]
+  comments    TaskComment[]
+  timeLogs    TimeLog[]
+}
+
+model EquipmentType {
+  id    Int       @id @default(autoincrement())
+  name  String
+  items EquipmentItem[]
+}
+
+model EquipmentTemplate {
+  id    Int        @id @default(autoincrement())
+  name  String
+}
+
+model EquipmentItem {
+  id                Int                @id @default(autoincrement())
+  name              String
+  equipmentType    EquipmentType      @relation(fields: [equipmentTypeId], references: [id])
+  equipmentTypeId  Int
+  templates        EquipmentTemplate[]
+}
+
+model TaskEquipment {
+  id        Int      @id @default(autoincrement())
+  task      Task     @relation(fields: [taskId], references: [id])
+  taskId    Int
+  item      EquipmentItem @relation(fields: [itemId], references: [id])
+  itemId    Int
+}
+
+model EquipmentWarehouse {
+  id    Int       @id @default(autoincrement())
+  name  String
+  items EquipmentItem[]
+}
+
+model Supplier {
+  id    Int      @id @default(autoincrement())
+  name  String
+  items EquipmentItem[]
+}
+
+model TaskComment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  task      Task     @relation(fields: [taskId], references: [id])
+  taskId    Int
+}
+
+model TimeLog {
+  id        Int      @id @default(autoincrement())
+  duration  Int      // Duration in minutes
+  task      Task     @relation(fields: [taskId], references: [id])
+  taskId    Int
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  message   String
+  task      Task     @relation(fields: [taskId], references: [id])
+  taskId    Int
+}
+
+model Report {
+  id        Int      @id @default(autoincrement())
+  content   String
+  task      Task     @relation(fields: [taskId], references: [id])
+  taskId    Int
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  action    String
+  timestamp DateTime @default(now())
+  task      Task     @relation(fields: [taskId], references: [id])
+  taskId    Int
 }
